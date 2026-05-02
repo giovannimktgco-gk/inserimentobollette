@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BollettaChiara — Analisi e confronto tariffe energetiche</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0f0e0c;
+  --paper: #f5f0e8;
+  --cream: #ede7d9;
+  --amber: #c8801a;
+  --amber-light: #f0a830;
+  --amber-pale: #fef3dc;
+  --blue: #1a3c5e;
+  --blue-light: #2a5f94;
+  --blue-pale: #e8f1f9;
+  --green: #1e5c3a;
+  --green-light: #2e8a58;
+  --green-pale: #e6f4ec;
+  --red: #9c2a1e;
+  --red-pale: #fdecea;
+  --mid: #6b6456;
+  --border: #d4c9b5;
+  --shadow: 0 2px 16px rgba(15,14,12,0.08);
+  --shadow-lg: 0 8px 40px rgba(15,14,12,0.14);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.logo span { color: var(--amber-light); }
+.tagline { font-size: 13px; color: #a09585; font-weight: 300; }
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  background: var(--cream);
+  border-bottom: 1px solid var(--border);
+  padding: .75rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  overflow-x: auto;
+}
+.step-dot {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 12px;
+  color: var(--mid);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.step-dot .num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--mid);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+  flex-shrink: 0;
+  transition: all .3s;
+}
+.step-dot.active .num { background: var(--amber); color: #fff; }
+.step-dot.done .num { background: var(--green-light); color: #fff; }
+.step-dot.active { color: var(--ink); }
+.step-sep { flex: 1; height: 1px; background: var(--border); min-width: 20px; }
+
+/* ── MAIN ── */
+main { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* ── CARDS ── */
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: .25rem;
+  color: var(--ink);
+}
+.card-sub {
+  font-size: 13px;
+  color: var(--mid);
+  margin-bottom: 1.5rem;
+  font-weight: 300;
+}
+
+/* ── SECTIONS ── */
+.section { display: none; }
+.section.active { display: block; animation: fadeUp .35s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── FORM ── */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { font-size: 12px; font-weight: 600; color: var(--mid); text-transform: uppercase; letter-spacing: .05em; }
+.form-group input, .form-group select {
+  padding: 10px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  background: #fff;
+  transition: border-color .2s;
+  outline: none;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--amber); }
+.form-group .hint { font-size: 11px; color: var(--mid); font-style: italic; margin-top: 2px; }
+
+/* ── TIPO SELECTOR ── */
+.tipo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; margin-bottom: 1.5rem; }
+@media(min-width:600px) { .tipo-grid { grid-template-columns: repeat(4, 1fr); } }
+.tipo-card {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem .75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  background: #fff;
+}
+.tipo-card:hover { border-color: var(--amber-light); background: var(--amber-pale); }
+.tipo-card.selected { border-color: var(--amber); background: var(--amber-pale); }
+.tipo-card .ico { font-size: 2rem; margin-bottom: .4rem; }
+.tipo-card .lbl { font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+
+/* ── BOLLETTA TIPO ── */
+.boll-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.boll-card {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  background: #fff;
+}
+.boll-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.boll-card.selected-luce { border-color: var(--amber); background: var(--amber-pale); }
+.boll-card.selected-gas { border-color: var(--blue); background: var(--blue-pale); }
+.boll-card .bico { font-size: 2.5rem; margin-bottom: .5rem; }
+.boll-card .bnm { font-size: 15px; font-weight: 600; }
+.boll-card .bsub { font-size: 12px; color: var(--mid); }
+
+/* ── SECTION SEPARATOR ── */
+.sec-sep {
+  display: flex; align-items: center; gap: .75rem;
+  margin: 1.5rem 0 1rem;
+}
+.sec-sep .line { flex: 1; height: 1px; background: var(--border); }
+.sec-sep .txt { font-size: 11px; font-weight: 600; color: var(--mid); text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 11px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .2s;
+}
+.btn-primary { background: var(--ink); color: var(--paper); }
+.btn-primary:hover { background: #2a2820; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(15,14,12,0.2); }
+.btn-amber { background: var(--amber); color: #fff; }
+.btn-amber:hover { background: #b8710f; transform: translateY(-1px); }
+.btn-outline { background: #fff; color: var(--ink); border: 1.5px solid var(--border); }
+.btn-outline:hover { border-color: var(--ink); }
+.btn-green { background: var(--green-light); color: #fff; }
+.btn-green:hover { background: var(--green); }
+.btn-sm { padding: 7px 14px; font-size: 13px; }
+.btn-row { display: flex; gap: .75rem; margin-top: 1.5rem; flex-wrap: wrap; }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-block; font-size: 11px; padding: 3px 9px;
+  border-radius: 99px; font-weight: 600; line-height: 1.4;
+}
+.badge-luce { background: var(--amber-pale); color: #8a5500; border: 1px solid #e8c070; }
+.badge-gas { background: var(--blue-pale); color: var(--blue); border: 1px solid #aac6e4; }
+.badge-ok { background: var(--green-pale); color: var(--green); border: 1px solid #a0d4b8; }
+.badge-warn { background: #fff3cd; color: #7a5c00; border: 1px solid #e8d080; }
+.badge-bad { background: var(--red-pale); color: var(--red); border: 1px solid #e4a09a; }
+
+/* ── FORNITORI ── */
+.forn-list { display: flex; flex-direction: column; gap: .75rem; margin-bottom: 1rem; }
+.forn-item {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.forn-nome { font-weight: 600; font-size: 14px; flex: 1; min-width: 120px; }
+.forn-detail { font-size: 12px; color: var(--mid); }
+.forn-val { font-size: 14px; font-weight: 600; }
+.del-btn { background: none; border: none; color: #bbb; cursor: pointer; font-size: 16px; padding: 2px 6px; }
+.del-btn:hover { color: var(--red); }
+
+/* ── RISULTATI ── */
+.risultato-card {
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  background: #fff;
+  transition: box-shadow .2s;
+  position: relative;
+  overflow: hidden;
+}
+.risultato-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+.risultato-card.best { border-color: var(--green-light); }
+.risultato-card.best::before { background: var(--green-light); }
+.risultato-card.good { border-color: var(--amber); }
+.risultato-card.good::before { background: var(--amber); }
+.risultato-card.neutral::before { background: var(--border); }
+.risultato-card.attuale { border-color: var(--blue); background: var(--blue-pale); }
+.risultato-card.attuale::before { background: var(--blue); }
+
+.risp-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: .75rem; flex-wrap: wrap; }
+.risp-nome { font-weight: 700; font-size: 16px; }
+.risp-costo { text-align: right; }
+.risp-costo .big { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
+.risp-costo .sub { font-size: 12px; color: var(--mid); }
+.risp-details { display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 13px; color: var(--mid); }
+.risp-details span strong { color: var(--ink); }
+.risparmio-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--green-pale); color: var(--green);
+  border: 1px solid #a0d4b8; border-radius: 8px;
+  padding: 4px 10px; font-size: 13px; font-weight: 600;
+  margin-top: .5rem;
+}
+.costo-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--red-pale); color: var(--red);
+  border: 1px solid #e4a09a; border-radius: 8px;
+  padding: 4px 10px; font-size: 13px; font-weight: 600;
+  margin-top: .5rem;
+}
+
+/* ── GIUDIZIO ── */
+.giudizio-box {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-top: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.giudizio-box::before {
+  content: '"';
+  position: absolute;
+  top: -20px; right: 20px;
+  font-family: 'Playfair Display', serif;
+  font-size: 12rem;
+  color: rgba(255,255,255,0.05);
+  line-height: 1;
+}
+.giudizio-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--amber-light); margin-bottom: .5rem; }
+.giudizio-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; }
+.giudizio-text { font-size: 14px; line-height: 1.8; color: #c8bfb0; font-weight: 300; }
+.giudizio-score {
+  display: flex; align-items: center; gap: 1rem;
+  margin-top: 1.5rem; padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.score-stars { font-size: 1.5rem; letter-spacing: 2px; }
+.score-label { font-size: 13px; color: #a09585; }
+
+/* ── KPI ROW ── */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.kpi { background: var(--cream); border-radius: 12px; padding: 1rem 1.25rem; border: 1px solid var(--border); }
+.kpi-label { font-size: 11px; color: var(--mid); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .3rem; }
+.kpi-value { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--ink); }
+.kpi-sub { font-size: 12px; color: var(--mid); }
+
+/* ── HIGHLIGHT BOX ── */
+.hl-box {
+  border-radius: 12px; padding: 1rem 1.25rem;
+  display: flex; align-items: flex-start; gap: .75rem;
+  margin-bottom: 1rem; font-size: 13px; line-height: 1.6;
+}
+.hl-box.info { background: var(--blue-pale); border: 1px solid #aac6e4; color: var(--blue); }
+.hl-box.warn { background: #fff3cd; border: 1px solid #e8d080; color: #7a5c00; }
+.hl-box.ok { background: var(--green-pale); border: 1px solid #a0d4b8; color: var(--green); }
+.hl-box .ico { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+/* ── RANK BADGE ── */
+.rank-badge {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.rank-1 { background: #ffd700; color: #7a5c00; }
+.rank-2 { background: #c0c0c0; color: #555; }
+.rank-3 { background: #cd7f32; color: #fff; }
+.rank-n { background: var(--cream); color: var(--mid); }
+
+/* ── DIVIDER ── */
+hr.div { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+/* ── CHECKBOX/RADIO CUSTOM ── */
+.radio-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+.radio-chip {
+  padding: 7px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  background: #fff;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.radio-chip.sel { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ── NOTA SCONTRINO ── */
+.nota-scontrino {
+  background: #fffbf0;
+  border: 1px dashed #d4a840;
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  font-size: 12px;
+  color: #7a5c00;
+  margin-top: 6px;
+  line-height: 1.6;
+}
+.nota-scontrino strong { display: block; margin-bottom: .2rem; }
+
+/* ── MOBILE ── */
+@media(max-width: 600px) {
+  main { padding: 1rem 1rem 3rem; }
+  header { padding: 1rem; }
+  .card { padding: 1.25rem; }
+  .boll-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Bolletta<span>Chiara</span></div>
+    <div class="tagline">Analisi e confronto tariffe energetiche</div>
+  </div>
+</header>
+
+<div class="progress-bar" id="progressBar">
+  <div class="step-dot active" id="sdot1"><div class="num">1</div> Tipo utenza</div>
+  <div class="step-sep"></div>
+  <div class="step-dot" id="sdot2"><div class="num">2</div> Bolletta</div>
+  <div class="step-sep"></div>
+  <div class="step-dot" id="sdot3"><div class="num">3</div> Fornitori</div>
+  <div class="step-sep"></div>
+  <div class="step-dot" id="sdot4"><div class="num">4</div> Risultati</div>
+</div>
+
+<main>
+
+<!-- ══ STEP 1: TIPO UTENZA ══ -->
+<div id="step1" class="section active">
+  <div class="card">
+    <div class="card-title">Chi sei?</div>
+    <div class="card-sub">Seleziona il tipo di utenza per personalizzare l'analisi</div>
+    <div class="tipo-grid">
+      <div class="tipo-card" onclick="selTipo(this,'domestica')">
+        <div class="ico">🏠</div>
+        <div class="lbl">Utenza domestica</div>
+      </div>
+      <div class="tipo-card" onclick="selTipo(this,'condominio')">
+        <div class="ico">🏢</div>
+        <div class="lbl">Condominio uso domestico</div>
+      </div>
+      <div class="tipo-card" onclick="selTipo(this,'azienda')">
+        <div class="ico">🏭</div>
+        <div class="lbl">Azienda</div>
+      </div>
+      <div class="tipo-card" onclick="selTipo(this,'altri')">
+        <div class="ico">⚡</div>
+        <div class="lbl">Altri usi</div>
+      </div>
+    </div>
+
+    <div class="sec-sep"><div class="line"></div><div class="txt">Tipo di fornitura</div><div class="line"></div></div>
+    <div class="boll-grid">
+      <div class="boll-card" onclick="selBolletta(this,'Luce')">
+        <div class="bico">💡</div>
+        <div class="bnm">Luce</div>
+        <div class="bsub">Energia elettrica</div>
+      </div>
+      <div class="boll-card" onclick="selBolletta(this,'Gas')">
+        <div class="bico">🔥</div>
+        <div class="bnm">Gas</div>
+        <div class="bsub">Gas naturale</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goStep(2)">Continua →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STEP 2: DATI BOLLETTA ══ -->
+<div id="step2" class="section">
+  <div class="card">
+    <div class="card-title">Dati della bolletta</div>
+    <div class="card-sub" id="step2sub">Inserisci i dati presenti sulla tua bolletta</div>
+
+    <div class="sec-sep"><div class="line"></div><div class="txt">Anagrafica</div><div class="line"></div></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nome e Cognome</label>
+        <input type="text" id="b-nome" placeholder="es. Mario Rossi">
+      </div>
+      <div class="form-group">
+        <label>Comune di fornitura</label>
+        <input type="text" id="b-comune" placeholder="es. Milano">
+      </div>
+    </div>
+
+    <div class="sec-sep"><div class="line"></div><div class="txt">Periodo di fatturazione</div><div class="line"></div></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Dal</label>
+        <input type="date" id="b-dal">
+      </div>
+      <div class="form-group">
+        <label>Al</label>
+        <input type="date" id="b-al">
+      </div>
+      <div class="form-group">
+        <label>Frequenza bolletta</label>
+        <div class="radio-row" style="margin-top:4px">
+          <div class="radio-chip sel" onclick="selChip(this,'freq','mensile')">Mensile</div>
+          <div class="radio-chip" onclick="selChip(this,'freq','bimensile')">Bimensile</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-sep"><div class="line"></div><div class="txt">Importi</div><div class="line"></div></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label id="lbl-consumi">Consumi nel periodo (kWh)</label>
+        <input type="number" id="b-consumi" min="0" step="0.01" placeholder="es. 323">
+      </div>
+      <div class="form-group">
+        <label>Importo totale bolletta (€)</label>
+        <input type="number" id="b-totale" min="0" step="0.01" placeholder="es. 123.61">
+        <span class="hint">Escludi il Canone RAI se presente</span>
+      </div>
+    </div>
+
+    <div class="sec-sep"><div class="line"></div><div class="txt">Dati dallo Scontrino dell'energia</div><div class="line"></div></div>
+    <div class="hl-box info">
+      <span class="ico">ℹ️</span>
+      <span>I dati seguenti si trovano nel riquadro <strong>"Scontrino dell'energia"</strong> della bolletta, nella sezione <em>Quota per consumi</em> e <em>Quota fissa e Quota potenza</em>.</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label id="lbl-tariffa">Tariffa vendita energia (€/kWh)</label>
+        <input type="number" id="b-tariffa" min="0" step="0.0001" placeholder="es. 0.1882">
+        <div class="nota-scontrino">
+          <strong>📋 Dove trovarlo:</strong>
+          Scontrino dell'energia → <em>Quota per consumi</em> → riga "di cui spesa per la vendita di energia elettrica" → colonna €/kWh
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Quota fissa vendita (€/mese)</label>
+        <input type="number" id="b-quota" min="0" step="0.01" placeholder="es. 10.17">
+        <div class="nota-scontrino">
+          <strong>📋 Dove trovarlo:</strong>
+          Scontrino dell'energia → <em>Quota fissa e Quota potenza</em> → riga "di cui spesa per la vendita di energia elettrica" → colonna €/mese
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-sep"><div class="line"></div><div class="txt">Consumi annui</div><div class="line"></div></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label id="lbl-ann">Consumi annui (kWh)</label>
+        <input type="number" id="b-ann" min="0" placeholder="es. 2400">
+      </div>
+      <div class="form-group">
+        <label>Tipo dato consumi annui</label>
+        <div class="radio-row" style="margin-top:4px">
+          <div class="radio-chip sel" onclick="selChip(this,'consann','reale')">Dato reale</div>
+          <div class="radio-chip" onclick="selChip(this,'consann','stima')">Stima</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goStep(1)">← Indietro</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Continua →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STEP 3: FORNITORI ══ -->
+<div id="step3" class="section">
+  <div class="card">
+    <div class="card-title">Offerte dei fornitori</div>
+    <div class="card-sub">La lista viene salvata automaticamente e rimane disponibile anche dopo aver spento il pc</div>
+
+    <div class="hl-box ok">
+      <span class="ico">💾</span>
+      <span><strong>Lista precaricata e sempre disponibile</strong> — Il file contiene già <strong>92 offerte di mercato</strong> (aggiornate). Sono disponibili su qualsiasi dispositivo senza bisogno di importare nulla. Puoi aggiungerne altre manualmente o caricare un CSV aggiornato.</span>
+    </div>
+
+    <!-- IMPORT/EXPORT -->
+    <div class="sec-sep"><div class="line"></div><div class="txt">Carica da file (CSV o Excel)</div><div class="line"></div></div>
+
+    <div class="hl-box info">
+      <span class="ico">📄</span>
+      <div>
+        <div>Il file deve avere queste colonne (la prima riga è l'intestazione):</div>
+        <code style="display:block;margin-top:6px;font-size:12px;background:rgba(0,0,0,0.06);padding:6px 10px;border-radius:6px;line-height:1.8">
+          fornitore | offerta | tipo_bolletta | tipo_utenza | tariffa | quota_fissa | tipo_tariffa
+        </code>
+        <div style="margin-top:6px;font-size:12px;line-height:1.8">
+          <strong>tipo_bolletta</strong>: Luce o Gas &nbsp;|&nbsp;
+          <strong>tipo_utenza</strong>:
+          <span style="font-family:monospace;background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px">D</span> Domestica &nbsp;
+          <span style="font-family:monospace;background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px">C</span> Condominio &nbsp;
+          <span style="font-family:monospace;background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px">B</span> Business &nbsp;
+          <span style="font-family:monospace;background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px">AU</span> Altri usi<br>
+          <strong>tariffa</strong>: es. 0,1750 &nbsp;|&nbsp;
+          <strong>quota_fissa</strong>: es. 9,00 &nbsp;|&nbsp;
+          <strong>tipo_tariffa</strong>: fissa o indicizzata
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem">
+      <label class="btn btn-amber" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        ↑ Carica CSV / Excel
+        <input type="file" id="file-import" accept=".csv,.xlsx,.xls" style="display:none" onchange="importaFile(this)">
+      </label>
+      <div class="radio-chip sel" id="chip-aggiungi" onclick="selModeImport('aggiungi')">Aggiungi alla lista</div>
+      <div class="radio-chip" id="chip-sostituisci" onclick="selModeImport('sostituisci')">Sostituisci lista</div>
+      <button class="btn btn-outline btn-sm" onclick="scaricaTemplate()">↓ Scarica template CSV</button>
+    </div>
+    <div id="import-feedback" style="font-size:13px;color:var(--green);margin-bottom:.5rem;min-height:1.2em"></div>
+
+    <!-- Form aggiungi manuale -->
+    <div class="sec-sep"><div class="line"></div><div class="txt">Aggiungi manualmente</div><div class="line"></div></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nome fornitore</label>
+        <input type="text" id="of-nome" placeholder="es. Enel Energia">
+      </div>
+      <div class="form-group">
+        <label>Nome offerta</label>
+        <input type="text" id="of-offerta" placeholder="es. Luce Flex 24">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tipo bolletta offerta</label>
+        <div class="radio-row" style="margin-top:4px">
+          <div class="radio-chip sel" onclick="selChip(this,'ofboll','Luce')">💡 Luce</div>
+          <div class="radio-chip" onclick="selChip(this,'ofboll','Gas')">🔥 Gas</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tipo utenza offerta</label>
+        <div class="radio-row" style="margin-top:4px">
+          <div class="radio-chip sel" onclick="selChip(this,'ofutenza','D')">D – Domestica</div>
+          <div class="radio-chip" onclick="selChip(this,'ofutenza','C')">C – Condominio</div>
+          <div class="radio-chip" onclick="selChip(this,'ofutenza','B')">B – Business</div>
+          <div class="radio-chip" onclick="selChip(this,'ofutenza','AU')">AU – Altri usi</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label id="lbl-of-tar">Tariffa vendita energia (€/kWh)</label>
+        <input type="number" id="of-tar" step="0.0001" placeholder="es. 0.1750">
+      </div>
+      <div class="form-group">
+        <label>Quota fissa (€/mese)</label>
+        <input type="number" id="of-quota" step="0.01" placeholder="es. 9.00">
+      </div>
+      <div class="form-group">
+        <label>Tipo tariffa</label>
+        <div class="radio-row" style="margin-top:4px">
+          <div class="radio-chip sel" onclick="selChip(this,'oftar','fissa')">Fissa</div>
+          <div class="radio-chip" onclick="selChip(this,'oftar','indicizzata')">Indicizzata</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-amber" onclick="aggiungiForn()">+ Aggiungi offerta</button>
+
+    <!-- Bottoni azione SOPRA la lista -->
+    <div class="btn-row" style="margin-top:1.25rem;margin-bottom:.5rem">
+      <button class="btn btn-green" onclick="elabora()">Elabora e confronta →</button>
+      <button class="btn btn-outline" onclick="goStep(2)">← Indietro</button>
+    </div>
+
+    <!-- Lista offerte -->
+    <div class="sec-sep">
+      <div class="line"></div>
+      <div class="txt" id="forn-count-label">Offerte in lista (0)</div>
+      <div class="line"></div>
+    </div>
+    <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="esportaFornitori()">↓ Esporta lista (CSV)</button>
+      <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:#e4a09a" onclick="svuotaFornitori()">↺ Ripristina default</button>
+    </div>
+    <div class="forn-list" id="forn-list">
+      <div style="text-align:center;padding:1.5rem;color:var(--mid);font-size:13px">Nessuna offerta ancora inserita</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goStep(2)">← Indietro</button>
+      <button class="btn btn-green" onclick="elabora()">Elabora e confronta →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STEP 4: RISULTATI ══ -->
+<div id="step4" class="section">
+  <div class="card">
+    <div class="card-title">Analisi e confronto</div>
+    <div class="card-sub" id="rpt-sub"></div>
+
+    <!-- KPI -->
+    <div class="kpi-row" id="kpi-row"></div>
+
+    <div class="sec-sep"><div class="line"></div><div class="txt">Confronto offerte — dal più conveniente</div><div class="line"></div></div>
+    <div id="risultati-list"></div>
+
+    <!-- Giudizio finale -->
+    <div class="giudizio-box" id="giudizio-box"></div>
+
+    <!-- Box contatti GioKri Life — popolato dinamicamente da renderGiudizio() -->
+    <div id="contatti-giokri"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goStep(3)">← Modifica</button>
+      <button class="btn btn-outline" onclick="nuovaAnalisi()">↺ Nuova analisi</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+// ── DATI FORNITORI PRECARICATI (aggiornati automaticamente dal CSV) ──
+const FORNITORI_DEFAULT = [{"id":2,"nome":"SMART ENERGY","offerta":"SMART LUCE CASA","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.15241,"quota_fissa":12.5,"tipo_tariffa":"indicizzata"},{"id":3,"nome":"EDISON","offerta":"FLEX BUSINESS LUCE","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.13541,"quota_fissa":18.0,"tipo_tariffa":"indicizzata"},{"id":4,"nome":"EDISON","offerta":"WORLD LUCE","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.11441,"quota_fissa":20.0,"tipo_tariffa":"indicizzata"},{"id":5,"nome":"UNION","offerta":"COMFORT LIGHT","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.15181,"quota_fissa":9.5,"tipo_tariffa":"indicizzata"},{"id":6,"nome":"ACEA","offerta":"FIX CASA","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.153,"quota_fissa":11.0,"tipo_tariffa":"fissa"},{"id":7,"nome":"UNION","offerta":"SPRINT BUSINESS","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.12981,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":8,"nome":"SMART ENERGY","offerta":"LUCESULTRA1","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.14149,"quota_fissa":6.9,"tipo_tariffa":"fissa"},{"id":9,"nome":"SMART ENERGY","offerta":"LUCESULTRA2","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.14149,"quota_fissa":11.8,"tipo_tariffa":"fissa"},{"id":10,"nome":"UNION","offerta":"SPRINT LIGHT","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.15291,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":11,"nome":"ENI PLENITUDE","offerta":"TREND BUSINESS","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.13971,"quota_fissa":16.0,"tipo_tariffa":"indicizzata"},{"id":12,"nome":"HERA","offerta":"PIÙCONTROLLO FLAT CASA LUCE","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.1506,"quota_fissa":12.1025,"tipo_tariffa":"fissa"},{"id":13,"nome":"ENI PLENITUDE","offerta":"FIXA TIME","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.198,"quota_fissa":12.0,"tipo_tariffa":"fissa"},{"id":14,"nome":"UNION","offerta":"COMFORT","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.15181,"quota_fissa":10.5,"tipo_tariffa":"indicizzata"},{"id":15,"nome":"EDISON","offerta":"SUPERFLEX BUSINESS LUCE","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.13791,"quota_fissa":20.5,"tipo_tariffa":"indicizzata"},{"id":16,"nome":"ENGIE","offerta":"EFLEX","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.13441,"quota_fissa":14.0,"tipo_tariffa":"indicizzata"},{"id":17,"nome":"ACEA","offerta":"ENERGIA SPRINT","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.14185,"quota_fissa":13.0,"tipo_tariffa":"indicizzata"},{"id":18,"nome":"UNION","offerta":"EXCELLENT","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.14741,"quota_fissa":14.5,"tipo_tariffa":"indicizzata"},{"id":19,"nome":"SINERGY","offerta":"BUSINESS LUCE","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.14191,"quota_fissa":12.5,"tipo_tariffa":"indicizzata"},{"id":20,"nome":"SINERGY","offerta":"FAMILY LUCE","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.14191,"quota_fissa":10.83333333,"tipo_tariffa":"indicizzata"},{"id":21,"nome":"UNION","offerta":"SPRINT","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.14411,"quota_fissa":16.0,"tipo_tariffa":"indicizzata"},{"id":22,"nome":"ACEA","offerta":"ENERGIA FLEX CASA","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.15585,"quota_fissa":9.0,"tipo_tariffa":"indicizzata"},{"id":23,"nome":"ENGIE","offerta":"VEDO CHIARO","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.12941,"quota_fissa":11.5,"tipo_tariffa":"indicizzata"},{"id":24,"nome":"EDISON","offerta":"SUPERFLEX LUCE","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.13641,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":25,"nome":"ENEL","offerta":"Enel Business Luce","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.154,"quota_fissa":13.0,"tipo_tariffa":"fissa"},{"id":26,"nome":"ENEL","offerta":"Fix Luce","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.28841,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":27,"nome":"ENEL","offerta":"Enel Business Super Luce","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.147,"quota_fissa":15.0,"tipo_tariffa":"fissa"},{"id":28,"nome":"ACEA","offerta":"ENERGIA SPRINT","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.12861,"quota_fissa":13.0,"tipo_tariffa":"indicizzata"},{"id":29,"nome":"SORGENIA","offerta":"FISSO PER TE","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.1733,"quota_fissa":18.0,"tipo_tariffa":"fissa"},{"id":30,"nome":"HERA","offerta":"HYBRID CASA LUCE","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.1449,"quota_fissa":12.1025,"tipo_tariffa":"fissa"},{"id":31,"nome":"HERA","offerta":"HYBRID LAVORO LUCE","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.1539,"quota_fissa":14.5,"tipo_tariffa":"fissa"},{"id":32,"nome":"UNION","offerta":"SPRINT LIGHT BUSINESS","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.12981,"quota_fissa":12.5,"tipo_tariffa":"indicizzata"},{"id":33,"nome":"SORGENIA","offerta":"LUCE SMART","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.13891,"quota_fissa":18.0,"tipo_tariffa":"indicizzata"},{"id":34,"nome":"ENEL ENERGIA","offerta":"FLEX CONTROL LUCE","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.13641,"quota_fissa":15.0,"tipo_tariffa":"indicizzata"},{"id":35,"nome":"ENEL ENERGIA","offerta":"FLEX LUCE","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.13667,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":36,"nome":"ENGIE","offerta":"RESTI&RISPARMI","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.13701,"quota_fissa":12.0,"tipo_tariffa":"fissa"},{"id":37,"nome":"HERA","offerta":"PIÙCONTROLLO ACTIVE CASA LUCE","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.12241,"quota_fissa":16.1025,"tipo_tariffa":"indicizzata"},{"id":38,"nome":"SORGENIA","offerta":"NEXT ENERGY SUNLIGHT/LUCE","tipo_bolletta":"Luce","tipo_utenza":"D","tariffa":0.13431,"quota_fissa":12.25,"tipo_tariffa":"indicizzata"},{"id":39,"nome":"ACEA","offerta":"SPRINT","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.13041,"quota_fissa":13.0,"tipo_tariffa":"indicizzata"},{"id":40,"nome":"HERA","offerta":"PIÙCONTROLLO FLAT LAVORO LUCE","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.1769,"quota_fissa":14.5,"tipo_tariffa":"fissa"},{"id":41,"nome":"HERA","offerta":"PIÙCONTROLLO ACTIVE LAVORO LUCE","tipo_bolletta":"Luce","tipo_utenza":"B","tariffa":0.1319,"quota_fissa":14.5,"tipo_tariffa":"indicizzata"},{"id":42,"nome":"UNION","offerta":"EXCELLENT GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.62687,"quota_fissa":14.5,"tipo_tariffa":"indicizzata"},{"id":43,"nome":"EDISON","offerta":"FLEX BUSINESS GAS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.55187,"quota_fissa":18.0,"tipo_tariffa":"indicizzata"},{"id":44,"nome":"EDISON","offerta":"SUPERFLEX GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.45687,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":45,"nome":"EDISON","offerta":"WORLD GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.37687,"quota_fissa":20.0,"tipo_tariffa":"indicizzata"},{"id":46,"nome":"SMART ENERGY","offerta":"SMART GAS CASA","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.48987,"quota_fissa":12.5,"tipo_tariffa":"indicizzata"},{"id":47,"nome":"ACEA","offerta":"ENERGIA SPRINT","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.42987,"quota_fissa":10.0,"tipo_tariffa":"indicizzata"},{"id":48,"nome":"ENGIE","offerta":"VEDO CHIARO","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.44687,"quota_fissa":11.5,"tipo_tariffa":"indicizzata"},{"id":49,"nome":"UNION","offerta":"COMFORT GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.62687,"quota_fissa":10.5,"tipo_tariffa":"indicizzata"},{"id":50,"nome":"UNION","offerta":"Sprint Light Gas","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.51687,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":51,"nome":"SORGENIA","offerta":"NEXT ENERGY SUNLIGHT/GAS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.47187,"quota_fissa":10.0,"tipo_tariffa":"indicizzata"},{"id":52,"nome":"UNION","offerta":"Sprint Light Gas","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.51687,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":53,"nome":"UNION","offerta":"Sprint Light Business Gas","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.51687,"quota_fissa":12.5,"tipo_tariffa":"indicizzata"},{"id":54,"nome":"UNION","offerta":"COMFORT LIGHT GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.62687,"quota_fissa":9.5,"tipo_tariffa":"indicizzata"},{"id":55,"nome":"ENGIE","offerta":"FISSO 12 MESI GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.49,"quota_fissa":13.25,"tipo_tariffa":"fissa"},{"id":56,"nome":"ACEA","offerta":"ENERGIA FLEX CASA","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.49887,"quota_fissa":9.0,"tipo_tariffa":"indicizzata"},{"id":57,"nome":"UNION","offerta":"SPRINT Business GAS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.51687,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":58,"nome":"ENGIE","offerta":"EFLEX","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.48687,"quota_fissa":14.0,"tipo_tariffa":"indicizzata"},{"id":59,"nome":"EDISON","offerta":"SUPERFLEX BUSINESS GAS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.56687,"quota_fissa":20.5,"tipo_tariffa":"indicizzata"},{"id":60,"nome":"ENEL","offerta":"Flex Control Business Gas","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.53687,"quota_fissa":35.0,"tipo_tariffa":"indicizzata"},{"id":61,"nome":"ENEL","offerta":"Fix Business Start Gas","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.96187,"quota_fissa":15.0,"tipo_tariffa":"indicizzata"},{"id":62,"nome":"ENEL","offerta":"FLEX GAS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.48687,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":63,"nome":"SINERGY","offerta":"BUSINESS GAS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.49687,"quota_fissa":10.5,"tipo_tariffa":"indicizzata"},{"id":64,"nome":"ENI PLENITUDE","offerta":"TREND BUSINESS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.49187,"quota_fissa":16.0,"tipo_tariffa":"indicizzata"},{"id":65,"nome":"ENEL","offerta":"FIX GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.6,"quota_fissa":12.0,"tipo_tariffa":"fissa"},{"id":66,"nome":"ENEL","offerta":"Flex Control Gas","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.48687,"quota_fissa":15.0,"tipo_tariffa":"indicizzata"},{"id":67,"nome":"UNION","offerta":"SPRINT GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.56687,"quota_fissa":16.0,"tipo_tariffa":"indicizzata"},{"id":68,"nome":"ACEA","offerta":"ENERGY SPRINT","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.43287,"quota_fissa":13.0,"tipo_tariffa":"indicizzata"},{"id":69,"nome":"ACEA","offerta":"ENERGIA FIX CASA","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.6,"quota_fissa":11.0,"tipo_tariffa":"fissa"},{"id":70,"nome":"SORGENIA","offerta":"GAS SMART","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.52437,"quota_fissa":10.0,"tipo_tariffa":"indicizzata"},{"id":71,"nome":"ENI PLENITUDE","offerta":"FIXA TIME","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.775,"quota_fissa":12.0,"tipo_tariffa":"fissa"},{"id":72,"nome":"HERA","offerta":"PIÙCONTROLLO ACTIVE CASA GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.45687,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":73,"nome":"SMART ENERGY","offerta":"GASSULTRA1","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.46548,"quota_fissa":6.9,"tipo_tariffa":"fissa"},{"id":74,"nome":"SMART ENERGY","offerta":"GASSULTRA2","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.46548,"quota_fissa":11.9,"tipo_tariffa":"fissa"},{"id":75,"nome":"HERA","offerta":"PIÙCONTROLLO FLATCASA GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.599,"quota_fissa":12.0,"tipo_tariffa":"fissa"},{"id":76,"nome":"HERA","offerta":"HYBRID CASA GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.569,"quota_fissa":12.0,"tipo_tariffa":"fissa"},{"id":77,"nome":"HERA","offerta":"HYBRID LAVORO GAS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.599,"quota_fissa":14.5,"tipo_tariffa":"fissa"},{"id":78,"nome":"HERA","offerta":"PIÙCONTROLLO FLAT LAVORO GAS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.749,"quota_fissa":14.5,"tipo_tariffa":"fissa"},{"id":79,"nome":"HERA","offerta":"PIÙCONTROLLO ACTIVE LAVORO GAS","tipo_bolletta":"Gas","tipo_utenza":"B","tariffa":0.49687,"quota_fissa":14.5,"tipo_tariffa":"indicizzata"},{"id":80,"nome":"SINERGY","offerta":"FAMILY GAS","tipo_bolletta":"Gas","tipo_utenza":"D","tariffa":0.49687,"quota_fissa":10.83333333,"tipo_tariffa":"indicizzata"},{"id":81,"nome":"ENEL","offerta":"BUSINESS LUCE","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.154,"quota_fissa":13.0,"tipo_tariffa":"fissa"},{"id":82,"nome":"ENEL","offerta":"BUSINESS SUPER LUCE","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.1393,"quota_fissa":20.0,"tipo_tariffa":"fissa"},{"id":83,"nome":"ENEL","offerta":"Flex Business Luce","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.17536,"quota_fissa":12.0,"tipo_tariffa":"indicizzata"},{"id":84,"nome":"ENEL","offerta":"Flex Control Business Luce","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.17536,"quota_fissa":17.0,"tipo_tariffa":"indicizzata"},{"id":85,"nome":"HERA","offerta":"HYBRID F","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.1539,"quota_fissa":14.5,"tipo_tariffa":"fissa"},{"id":86,"nome":"HERA","offerta":"HYBRID V","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.17666,"quota_fissa":0.0,"tipo_tariffa":"indicizzata"},{"id":87,"nome":"ACEA","offerta":"SPRINT","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.16706,"quota_fissa":13.0,"tipo_tariffa":"indicizzata"},{"id":88,"nome":"ACEA","offerta":"FIX CASA","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.12,"quota_fissa":13.0,"tipo_tariffa":"fissa"},{"id":89,"nome":"FREE ENERGIA","offerta":"ALTRI USI","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.17036,"quota_fissa":15.0,"tipo_tariffa":"indicizzata"},{"id":90,"nome":"FREE ENERGIA","offerta":"FLEX LUCE","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.18536,"quota_fissa":15.0,"tipo_tariffa":"indicizzata"},{"id":91,"nome":"UNION","offerta":"SPRINT LIGHT","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.16576,"quota_fissa":12.51,"tipo_tariffa":"indicizzata"},{"id":92,"nome":"UNION","offerta":"ELITE","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.16576,"quota_fissa":20.0,"tipo_tariffa":"indicizzata"},{"id":93,"nome":"AGN CONDOMINI","offerta":"LUCE GOD","tipo_bolletta":"Luce","tipo_utenza":"C","tariffa":0.18886,"quota_fissa":21.0,"tipo_tariffa":"indicizzata"}];
+
+const S = {
+  tipo: null, bolletta: null,
+  freq: 'mensile', consann: 'reale', oftar: 'fissa', ofboll: 'Luce', ofutenza: 'D',
+  fornitori: [],   // lista sessione (localStorage + aggiunte manuali)
+  dati: {}
+};
+
+const LS_KEY = 'bollettachiara_fornitori_v1';
+
+// ══════════════════════════════════════════════════════
+// PERSISTENZA localStorage
+// ══════════════════════════════════════════════════════
+function salvaLS() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(S.fornitori)); } catch(e) {}
+}
+
+function caricaLS() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        S.fornitori = parsed;
+        return;
+      }
+    }
+  } catch(e) {}
+  // Nessun dato in localStorage: usa i fornitori precaricati nel file
+  S.fornitori = FORNITORI_DEFAULT.map((f,i) => ({...f, id: Date.now()+i}));
+}
+
+// ══════════════════════════════════════════════════════
+// NAVIGAZIONE
+// ══════════════════════════════════════════════════════
+function goStep(n) {
+  if (n === 2 && !S.tipo)     { alert('Seleziona il tipo di utenza.'); return; }
+  if (n === 2 && !S.bolletta) { alert('Seleziona Luce o Gas.'); return; }
+  if (n === 3 && !validateStep2()) return;
+  if (n === 4) return;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  updateProgress(n);
+  if (n === 3) {
+    renderFornitori();
+    const _l = document.getElementById('forn-count-label');
+    if (_l) _l.textContent = `Offerte in lista (${S.fornitori.length})`;
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress(n) {
+  for (let i = 1; i <= 4; i++) {
+    const d = document.getElementById('sdot' + i);
+    d.classList.remove('active', 'done');
+    if (i < n) d.classList.add('done');
+    else if (i === n) d.classList.add('active');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// STEP 1
+// ══════════════════════════════════════════════════════
+function selTipo(el, val) {
+  document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  S.tipo = val;
+}
+
+function selBolletta(el, val) {
+  document.querySelectorAll('.boll-card').forEach(c => c.classList.remove('selected-luce','selected-gas'));
+  el.classList.add(val === 'Luce' ? 'selected-luce' : 'selected-gas');
+  S.bolletta = val;
+  const unit = val === 'Luce' ? 'kWh' : 'Smc';
+  const tar  = val === 'Luce' ? '€/kWh' : '€/Smc';
+  document.getElementById('lbl-consumi').textContent  = `Consumi nel periodo (${unit})`;
+  document.getElementById('lbl-tariffa').textContent  = `Tariffa vendita energia (${tar})`;
+  document.getElementById('lbl-ann').textContent      = `Consumi annui (${unit})`;
+  document.getElementById('lbl-of-tar').textContent   = `Tariffa vendita energia (${tar})`;
+  document.getElementById('step2sub').textContent     = `Inserisci i dati della tua bolletta ${val.toLowerCase()}`;
+  // Preseleziona tipo bolletta nell'aggiunta manuale
+  S.ofboll = val;
+}
+
+// ══════════════════════════════════════════════════════
+// CHIP SELECTOR
+// ══════════════════════════════════════════════════════
+function selChip(el, group, val) {
+  el.closest('.radio-row').querySelectorAll('.radio-chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  S[group] = val;
+}
+
+function selModeImport(mode) {
+  S.importMode = mode;
+  document.getElementById('chip-aggiungi').classList.toggle('sel', mode === 'aggiungi');
+  document.getElementById('chip-sostituisci').classList.toggle('sel', mode === 'sostituisci');
+}
+S.importMode = 'aggiungi';
+
+// ══════════════════════════════════════════════════════
+// STEP 2 VALIDATION
+// ══════════════════════════════════════════════════════
+function validateStep2() {
+  const nome    = document.getElementById('b-nome').value.trim();
+  const consumi = parseFloat(document.getElementById('b-consumi').value);
+  const totale  = parseFloat(document.getElementById('b-totale').value);
+  const tariffa = parseFloat(document.getElementById('b-tariffa').value);
+  if (!nome)                       { alert('Inserisci il nome e cognome.'); return false; }
+  if (isNaN(consumi) || consumi<=0){ alert('Inserisci i consumi del periodo.'); return false; }
+  if (isNaN(totale)  || totale<=0) { alert('Inserisci l\'importo totale della bolletta.'); return false; }
+  if (isNaN(tariffa) || tariffa<=0){ alert('Inserisci la tariffa di vendita energia (dallo Scontrino dell\'energia).'); return false; }
+  S.dati = {
+    nome, comune: document.getElementById('b-comune').value,
+    dal: document.getElementById('b-dal').value,
+    al:  document.getElementById('b-al').value,
+    consumi, totale,
+    tariffa, quota: parseFloat(document.getElementById('b-quota').value) || 0,
+    ann: parseFloat(document.getElementById('b-ann').value) || null,
+    freq: S.freq, consannType: S.consann
+  };
+  return true;
+}
+
+// ══════════════════════════════════════════════════════
+// STEP 3 – FORNITORI: aggiunta manuale
+// ══════════════════════════════════════════════════════
+function aggiungiForn() {
+  const nome  = document.getElementById('of-nome').value.trim();
+  const tar   = parseFloat(document.getElementById('of-tar').value);
+  const quota = parseFloat(document.getElementById('of-quota').value) || 0;
+  if (!nome || isNaN(tar)) { alert('Inserisci almeno il nome del fornitore e la tariffa energia.'); return; }
+  S.fornitori.push({
+    id: Date.now(),
+    nome,
+    offerta:       document.getElementById('of-offerta').value.trim(),
+    tipo_bolletta: S.ofboll || S.bolletta || 'Luce',
+    tipo_utenza:   S.ofutenza || 'D',
+    tariffa:       tar,
+    quota_fissa:   quota,
+    tipo_tariffa:  S.oftar
+  });
+  salvaLS();
+  ['of-nome','of-offerta','of-tar','of-quota'].forEach(id => document.getElementById(id).value = '');
+  renderFornitori();
+  feedback('✓ Offerta aggiunta e salvata in memoria', 'var(--green)');
+}
+
+function delForn(i) {
+  S.fornitori.splice(i, 1);
+  salvaLS();
+  renderFornitori();
+}
+
+function svuotaFornitori() {
+  if (!confirm('Vuoi eliminare le offerte aggiunte manualmente e ripristinare la lista di default?')) return;
+  S.fornitori = FORNITORI_DEFAULT.map((f,i) => ({...f, id: Date.now()+i}));
+  salvaLS();
+  renderFornitori();
+  feedback(`✓ Lista ripristinata con ${S.fornitori.length} offerte di default.`, 'var(--green)');
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER LISTA FORNITORI
+// ══════════════════════════════════════════════════════
+function renderFornitori() {
+  const list = document.getElementById('forn-list');
+  const lbl  = document.getElementById('forn-count-label');
+  lbl.textContent = `Offerte in lista (${S.fornitori.length})`;
+
+  if (!S.fornitori.length) {
+    list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--mid);font-size:13px">Nessuna offerta ancora inserita</div>';
+    return;
+  }
+
+  list.innerHTML = S.fornitori.map((f, i) => {
+    const unit = (f.tipo_bolletta || 'Luce') === 'Luce' ? 'kWh' : 'Smc';
+    const tipoBoll = f.tipo_bolletta || '—';
+    const tipoU = f.tipo_utenza || 'D';
+    const uLabel = UTENZA_LABEL[tipoU] || tipoU;
+    return `
+    <div class="forn-item">
+      <span class="badge ${tipoBoll === 'Luce' ? 'badge-luce' : 'badge-gas'}" style="flex-shrink:0">${tipoBoll}</span>
+      <span class="badge badge-eq" style="flex-shrink:0;font-size:10px">${esc(tipoU)} ${esc(uLabel)}</span>
+      <div style="flex:1;min-width:0">
+        <div class="forn-nome">${esc(f.nome)}${f.offerta ? ' — ' + esc(f.offerta) : ''}</div>
+        <div class="forn-detail">
+          <span class="badge ${f.tipo_tariffa === 'fissa' ? 'badge-ok' : 'badge-warn'}">${f.tipo_tariffa || '—'}</span>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="forn-val">${fmt(f.tariffa, 4)} €/${unit}</div>
+        <div class="forn-detail">Q. fissa: ${fmt(f.quota_fissa, 2)} €/mese</div>
+      </div>
+      <button class="del-btn" onclick="delForn(${i})" title="Elimina">×</button>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// IMPORT DA FILE (CSV o Excel)
+// ══════════════════════════════════════════════════════
+function importaFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    let righe = [];
+    try {
+      if (ext === 'csv') {
+        righe = parseCSV(e.target.result);
+      } else {
+        // xlsx / xls via SheetJS
+        const wb = XLSX.read(e.target.result, { type: 'binary' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        righe = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      }
+      applicaRighe(righe);
+    } catch(err) {
+      alert('Errore nella lettura del file: ' + err.message);
+    }
+    input.value = ''; // reset input
+  };
+
+  if (ext === 'csv') reader.readAsText(file, 'UTF-8');
+  else               reader.readAsBinaryString(file);
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+
+  // Rileva il separatore di colonna (preferisce ; per evitare conflitti con , decimale)
+  const sep = lines[0].includes(';') ? ';' : ',';
+
+  // Parser CSV che rispetta i campi tra virgolette
+  function splitCSVLine(line, s) {
+    const result = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === s && !inQ) { result.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    result.push(cur.trim());
+    return result;
+  }
+
+  const headers = splitCSVLine(lines[0], sep)
+    .map(h => h.replace(/"/g,'').trim().toLowerCase().replace(/[^a-z_]/g,''));
+
+  return lines.slice(1)
+    .filter(l => l.trim())
+    .map(line => {
+      const vals = splitCSVLine(line, sep);
+      const obj = {};
+      headers.forEach((h, i) => {
+        obj[h] = (vals[i] || '').replace(/^"|"$/g,'').trim();
+      });
+      return obj;
+    }).filter(r => r.fornitore || r.nome);
+}
+
+// Colonne accettate (con alias per flessibilità)
+const COL_MAP = {
+  nome:          ['fornitore','nome'],
+  offerta:       ['offerta','nome_offerta','nomeofferta'],
+  tipo_bolletta: ['tipo_bolletta','tipobolletta','tipo','bolletta'],
+  tipo_utenza:   ['tipo_utenza','tipoutenza','utenza','categoria'],
+  tariffa:       ['tariffa','tariffa_kwh','tariffa_smc','prezzo'],
+  quota_fissa:   ['quota_fissa','quotafissa','quota','fisso'],
+  tipo_tariffa:  ['tipo_tariffa','tipotariffa','tipo_tariffa','variabile']
+};
+
+function leggiCol(row, field) {
+  for (const alias of COL_MAP[field]) {
+    const k = Object.keys(row).find(k => k.toLowerCase().replace(/[^a-z_]/g,'') === alias);
+    if (k !== undefined && row[k] !== '') return row[k];
+  }
+  return '';
+}
+
+function applicaRighe(righe) {
+  const nuove = [];
+  let errori = 0;
+  // Debug: mostra colonne rilevate nella prima riga
+  if (righe.length > 0) {
+    const cols = Object.keys(righe[0]).join(' | ');
+    feedback('Colonne rilevate: ' + cols, 'var(--blue)');
+    setTimeout(() => {}, 100);
+  }
+  righe.forEach((r, idx) => {
+    const nome    = leggiCol(r, 'nome');
+    const tarRaw  = leggiCol(r, 'tariffa');
+    const tariffa = parseFloat(String(tarRaw).replace(/\./g,'').replace(',','.'));
+    if (!nome || isNaN(tariffa)) { errori++; return; }
+
+    const tipoB = normalizzaTipoBolletta(leggiCol(r, 'tipo_bolletta'));
+    const tipoT = normalizzaTipoTariffa(leggiCol(r, 'tipo_tariffa'));
+    const quotaRaw = String(leggiCol(r, 'quota_fissa'));
+    const quota = parseFloat(quotaRaw.replace(/\./g,'').replace(',','.')) || 0;
+
+    const tipoU = normalizzaTipoUtenza(leggiCol(r, 'tipo_utenza'));
+    nuove.push({
+      id: Date.now() + idx,
+      nome,
+      offerta:       leggiCol(r, 'offerta'),
+      tipo_bolletta: tipoB,
+      tipo_utenza:   tipoU,
+      tariffa,
+      quota_fissa:   quota,
+      tipo_tariffa:  tipoT
+    });
+  });
+
+  if (S.importMode === 'sostituisci') S.fornitori = nuove;
+  else S.fornitori = [...S.fornitori, ...nuove];
+
+  salvaLS();
+  renderFornitori();
+  const tot = nuove.length + errori;
+  const msg = S.importMode === 'sostituisci'
+    ? `✓ Lista sostituita: ${nuove.length} offerte caricate su ${tot} righe lette${errori ? ' (' + errori + ' ignorate per dati mancanti)' : ''}.`
+    : `✓ ${nuove.length} offerte aggiunte su ${tot} righe lette${errori ? ' (' + errori + ' ignorate per dati mancanti)' : ''}.`;
+  feedback(msg, nuove.length > 0 ? 'var(--green)' : 'var(--red)');
+}
+
+function normalizzaTipoBolletta(val) {
+  const v = String(val).toLowerCase();
+  if (v.includes('gas')) return 'Gas';
+  return 'Luce'; // default
+}
+
+function normalizzaTipoTariffa(val) {
+  const v = String(val).toLowerCase();
+  if (v.includes('ind') || v.includes('var') || v.includes('pun') || v.includes('ttf')) return 'indicizzata';
+  return 'fissa';
+}
+
+function normalizzaTipoUtenza(val) {
+  const v = String(val).toUpperCase().trim();
+  if (v === 'C' || v.includes('COND')) return 'C';
+  if (v === 'B' || v.includes('BUS') || v.includes('AZIE')) return 'B';
+  if (v === 'AU' || v.includes('ALTRI') || v.includes('OTHER')) return 'AU';
+  return 'D'; // default: Domestica
+}
+
+// Mappa codice utenza → etichetta leggibile
+const UTENZA_LABEL = { D: 'Domestica', C: 'Condominio', B: 'Business', AU: 'Altri usi' };
+const UTENZA_TIPO  = { domestica: 'D', condominio: 'C', azienda: 'B', altri: 'AU' };
+
+// ══════════════════════════════════════════════════════
+// EXPORT FORNITORI (CSV)
+// ══════════════════════════════════════════════════════
+function esportaFornitori() {
+  if (!S.fornitori.length) { alert('Nessuna offerta da esportare.'); return; }
+  const headers = ['fornitore','offerta','tipo_bolletta','tipo_utenza','tariffa','quota_fissa','tipo_tariffa'];
+  const rows = S.fornitori.map(f => [
+    f.nome, f.offerta || '', f.tipo_bolletta || 'Luce',
+    f.tipo_utenza || 'D',
+    String(f.tariffa).replace('.',','),
+    String(f.quota_fissa || 0).replace('.',','),
+    f.tipo_tariffa || 'fissa'
+  ].map(v => `"${v}"`).join(';'));
+  const csv = [headers.join(';'), ...rows].join('\n');
+  dl('data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv), 'fornitori_bollettachiara.csv');
+}
+
+// TEMPLATE CSV vuoto
+function scaricaTemplate() {
+  const headers = 'fornitore;offerta;tipo_bolletta;tipo_utenza;tariffa;quota_fissa;tipo_tariffa';
+  const esempio = [
+    'Enel Energia;Luce Flex 24;Luce;D;0,1750;9,00;fissa',
+    'Eni Plenitude;PleniGas;Gas;D;0,8600;10,00;indicizzata',
+    'A2A Energia;Luce Condominio;Luce;C;0,1820;18,00;fissa',
+    'Edison;Gas Business;Gas;B;0,8200;25,00;indicizzata',
+    'Illumia;Luce Altri Usi;Luce;AU;0,1900;12,00;fissa'
+  ].join('\n');
+  const csv = headers + '\n' + esempio;
+  dl('data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv), 'template_fornitori.csv');
+}
+
+// ══════════════════════════════════════════════════════
+// CALCOLO & ELABORA
+// ══════════════════════════════════════════════════════
+function costoAnnuo(tariffa, quota, consumiAnnui) {
+  return tariffa * consumiAnnui + quota * 12;
+}
+
+function elabora() {
+  if (!validateStep2()) return;
+  // Filtra fornitori per tipo bolletta analizzata
+  // Mappa tipo utenza sessione → codice
+  const codiceUtenza = UTENZA_TIPO[S.tipo] || 'D';
+  const fornFiltrati = S.fornitori.filter(f => {
+    const bollOk = !f.tipo_bolletta || f.tipo_bolletta === S.bolletta;
+    const utenzaOk = !f.tipo_utenza || f.tipo_utenza === codiceUtenza;
+    return bollOk && utenzaOk;
+  });
+  if (fornFiltrati.length === 0) {
+    const codUt = UTENZA_TIPO[S.tipo] || 'D';
+    const lblUt = UTENZA_LABEL[codUt] || codUt;
+    const msg = S.fornitori.length > 0
+      ? `Hai ${S.fornitori.length} offerte in lista ma nessuna per ${S.bolletta} / ${lblUt}. Vuoi procedere lo stesso con la sola analisi della bolletta attuale?`
+      : 'Non hai inserito offerte alternative. Vuoi procedere con la sola analisi della bolletta attuale?';
+    if (!confirm(msg)) return;
+  }
+
+  const d    = S.dati;
+  const unit = S.bolletta === 'Luce' ? 'kWh' : 'Smc';
+  const mesi = S.freq === 'mensile' ? 1 : 2;
+  const consumiAnnui     = d.ann || (d.consumi / mesi * 12);
+  const costoAnnuoAttuale = costoAnnuo(d.tariffa, d.quota, consumiAnnui);
+  const tariffaMedia     = d.totale / d.consumi;
+
+  // KPI
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi">
+      <div class="kpi-label">Spesa bolletta</div>
+      <div class="kpi-value">${fmtE(d.totale)}</div>
+      <div class="kpi-sub">${mesi === 1 ? 'mensile' : 'bimensile'}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Consumi periodo</div>
+      <div class="kpi-value">${fmt(d.consumi, 0)}</div>
+      <div class="kpi-sub">${unit}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Costo medio tutto incluso</div>
+      <div class="kpi-value">${fmt(tariffaMedia, 4)}</div>
+      <div class="kpi-sub">€/${unit}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Costo annuo stimato</div>
+      <div class="kpi-value">${fmtE(costoAnnuoAttuale)}</div>
+      <div class="kpi-sub">${fmt(consumiAnnui, 0)} ${unit}${d.ann ? (d.consannType === 'stima' ? ' (stima)' : ' (reale)') : ' (proiezione)'}</div>
+    </div>`;
+
+  // Lista: attuale + alternativi filtrati
+  const items = [
+    { nome:'Tua bolletta attuale', offerta:'', tariffa:d.tariffa, quota_fissa:d.quota,
+      tipo_tariffa:'attuale', costoAnn:costoAnnuoAttuale, isAttuale:true },
+    ...fornFiltrati.map(f => ({
+      ...f, costoAnn: costoAnnuo(f.tariffa, f.quota_fissa, consumiAnnui), isAttuale:false
+    }))
+  ];
+
+  const alternative   = items.filter(x => !x.isAttuale).sort((a,b) => a.costoAnn - b.costoAnn);
+  const listaOrdinata = [items[0], ...alternative];
+
+  document.getElementById('rpt-sub').innerHTML =
+    `Analisi per <strong>${esc(d.nome)}</strong> — <span class="badge ${S.bolletta==='Luce'?'badge-luce':'badge-gas'}">${S.bolletta}</span> — ${esc(d.comune || '—')}`;
+
+  const tarLabel = unit;
+  document.getElementById('risultati-list').innerHTML = listaOrdinata.map(item => {
+    const risparmio  = item.isAttuale ? null : costoAnnuoAttuale - item.costoAnn;
+    const rank       = item.isAttuale ? null : alternative.indexOf(item) + 1;
+    const cls        = item.isAttuale ? 'attuale' : rank===1 ? 'best' : rank===2 ? 'good' : 'neutral';
+    const rankBadge  = item.isAttuale
+      ? '<span class="badge badge-gas">Tua bolletta</span>'
+      : `<div class="rank-badge rank-${rank<=3?rank:'n'}">${rank}</div>`;
+    return `
+      <div class="risultato-card ${cls}">
+        <div class="risp-header">
+          <div style="display:flex;align-items:center;gap:.75rem">
+            ${rankBadge}
+            <div>
+              <div class="risp-nome">${esc(item.nome)}${item.offerta?' — '+esc(item.offerta):''}</div>
+              ${!item.isAttuale?`<span class="badge ${item.tipo_tariffa==='fissa'?'badge-ok':'badge-warn'}">${item.tipo_tariffa==='fissa'?'Tariffa fissa':'Tariffa indicizzata'}</span> <span class="badge badge-eq" style="font-size:10px">${esc(item.tipo_utenza||'D')} ${esc(UTENZA_LABEL[item.tipo_utenza]||'Domestica')}</span>`:''}
+            </div>
+          </div>
+          <div class="risp-costo">
+            <div class="big">${fmtE(item.costoAnn)}</div>
+            <div class="sub">stimato annuo</div>
+          </div>
+        </div>
+        <div class="risp-details">
+          <span><strong>${fmt(item.tariffa,4)} €/${tarLabel}</strong> tariffa vendita</span>
+          <span><strong>${fmt(item.quota_fissa||item.quota||0,2)} €/mese</strong> quota fissa</span>
+          <span><strong>${fmtE(item.costoAnn/12)}</strong> /mese stimato</span>
+        </div>
+        ${risparmio!==null
+          ? risparmio>0
+            ? `<div class="risparmio-tag">✓ Risparmio stimato: ${fmtE(risparmio)}/anno (${fmtE(risparmio/12)}/mese)</div>`
+            : `<div class="costo-tag">↑ Costo aggiuntivo: ${fmtE(Math.abs(risparmio))}/anno rispetto all'attuale</div>`
+          : ''}
+      </div>`;
+  }).join('');
+
+  const bestRisp = alternative.length ? costoAnnuoAttuale - alternative[0].costoAnn : null;
+  renderGiudizio(d, consumiAnnui, tariffaMedia, costoAnnuoAttuale, bestRisp, alternative.length>0, alternative, unit);
+
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('step4').classList.add('active');
+  updateProgress(4);
+  // Scroll robusto — funziona sia come file standalone che in iframe Wix
+  try {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const top = document.getElementById('step4');
+    if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════
+// GIUDIZIO FINALE
+// ══════════════════════════════════════════════════════
+function renderGiudizio(d, consumiAnnui, tariffaMedia, costoAnnuoAttuale, bestRisp, hasBest, ranked, unit) {
+  let giudizio, stars, titolo, testo;
+  const tarBenchmark = S.bolletta === 'Luce' ? 0.22 : 0.85;
+  const scost = ((d.tariffa - tarBenchmark) / tarBenchmark) * 100;
+
+  if (!hasBest) {
+    const livello = d.tariffa < tarBenchmark*0.95 ? 'ottima' : d.tariffa < tarBenchmark*1.05 ? 'nella media' : 'elevata';
+    titolo  = `La tua tariffa è ${livello}`;
+    stars   = d.tariffa < tarBenchmark*0.95 ? '★★★★★' : d.tariffa < tarBenchmark*1.05 ? '★★★☆☆' : '★★☆☆☆';
+    testo   = `La tua tariffa di vendita energia è <strong>${fmt(d.tariffa,4)} €/${unit}</strong>, ${scost<0?`circa il ${fmt(Math.abs(scost),1)}% al di sotto`:`circa il ${fmt(scost,1)}% al di sopra`} della media di mercato indicativa. Costo annuo stimato: <strong>${fmtE(costoAnnuoAttuale)}</strong>. Aggiungi offerte nella sezione Fornitori per un confronto completo.`;
+    giudizio = d.tariffa < tarBenchmark ? 'Nessuna azione urgente' : 'Valuta il mercato';
+  } else {
+    const bestForn = ranked[0];
+    if (bestRisp > 200) {
+      stars='★★☆☆☆'; titolo='Puoi risparmiare significativamente';
+      testo=`Costo annuo attuale: <strong>${fmtE(costoAnnuoAttuale)}</strong>. L'offerta migliore — <strong>${esc(bestForn.nome)}${bestForn.offerta?' ('+esc(bestForn.offerta)+')':''}</strong> — ti farebbe risparmiare <strong>${fmtE(bestRisp)}/anno</strong> (${fmtE(bestRisp/12)}/mese). ${bestForn.tipo_tariffa==='fissa'?'Tariffa fissa: certezza del costo per tutta la durata.':'Tariffa indicizzata: segue il mercato, conveniente nei periodi di calo prezzi.'} Si consiglia di valutare il cambio fornitore.`;
+      giudizio='Cambio fornitore consigliato';
+    } else if (bestRisp > 50) {
+      stars='★★★☆☆'; titolo='Piccolo margine di risparmio disponibile';
+      testo=`La tua bolletta attuale (${fmtE(costoAnnuoAttuale)}/anno) è nella media, ma <strong>${esc(bestForn.nome)}</strong> offre un risparmio di circa <strong>${fmtE(bestRisp)}/anno</strong>. Il risparmio è contenuto: valuta se i costi di cambio fornitore sono convenienti.`;
+      giudizio='Valuta con attenzione';
+    } else if (bestRisp > 0) {
+      stars='★★★★☆'; titolo='La tua tariffa è già competitiva';
+      testo=`Il tuo costo attuale (${fmtE(costoAnnuoAttuale)}/anno) è competitivo. Il risparmio massimo con le offerte inserite è di soli <strong>${fmtE(bestRisp)}/anno</strong>: non giustifica un cambio fornitore.`;
+      giudizio='Tariffa già competitiva';
+    } else {
+      stars='★★★★★'; titolo='Sei già sul fornitore migliore';
+      testo=`La tua bolletta attuale (${fmtE(costoAnnuoAttuale)}/anno) è più conveniente di tutte le offerte inserite. Nessuna azione necessaria.`;
+      giudizio='Nessun cambio necessario';
+    }
+  }
+
+  const notaConsumi = d.ann
+    ? (d.consannType==='stima' ? 'I consumi annui sono una <em>stima</em> del fornitore — il risparmio reale potrebbe variare.' : 'I consumi annui sono un dato reale.')
+    : `I consumi annui (${fmt(consumiAnnui,0)} ${unit}) sono stati proiettati dal dato di periodo.`;
+
+  document.getElementById('giudizio-box').innerHTML = `
+    <div class="giudizio-label">Giudizio finale</div>
+    <div class="giudizio-title">${titolo}</div>
+    <div class="giudizio-text">${testo}<br><br><em>${notaConsumi}</em></div>
+    <div class="giudizio-score">
+      <div class="score-stars">${stars}</div>
+      <div class="score-label">${giudizio}</div>
+    </div>`;
+
+  // Box contatti GioKri Life — iniettato dinamicamente dopo il giudizio
+  const contBox = document.getElementById('contatti-giokri');
+  if (contBox) {
+    contBox.innerHTML = `
+      <div style="display:flex;align-items:flex-start;gap:.85rem;background:#fef5e0;border:1px solid #e8c870;border-radius:12px;padding:1rem 1.2rem;margin-top:1rem;flex-wrap:wrap">
+        <span style="font-size:1.2rem;flex-shrink:0">&#x1F91D;</span>
+        <div style="font-size:13px;line-height:1.8">
+          <span style="font-weight:600;display:block;margin-bottom:.2rem">Hai dubbi sull'offerta migliore per la tua situazione?</span>
+          Per una consulenza professionale senza impegno, contatta <strong>GioKri Life Consulenti</strong>:&nbsp;
+          <a href="mailto:giokrilife@gmail.com" style="color:#c47d1a;font-weight:500;text-decoration:none">giokrilife@gmail.com</a>
+          &nbsp;&middot;&nbsp;
+          <a href="tel:+393271160053" style="color:#c47d1a;font-weight:500;text-decoration:none">+39 327 116 0053</a>
+          <span style="color:#6b6050"> (chiamata o WhatsApp)</span>
+        </div>
+      </div>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// NUOVA ANALISI
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// INVIO DATI A GOOGLE SHEETS
+// ══════════════════════════════════════════════════════
+function inviaASheet(d, consumiAnnui, costoAnnuoAttuale, alternative) {
+  try {
+    const bestForn = alternative.length ? alternative[0] : null;
+    const risparmio = bestForn ? (costoAnnuoAttuale - bestForn.costoAnn) : null;
+    const payload = {
+      nome:            d.nome         || '',
+      comune:          d.comune       || '',
+      tipo:            S.tipo         || '',
+      bolletta:        S.bolletta     || '',
+      dal:             d.dal          || '',
+      al:              d.al           || '',
+      freq:            d.freq         || '',
+      consumi:         d.consumi      || '',
+      consumi_ann:     consumiAnnui   || '',
+      stima:           d.consannType  || '',
+      tariffa:         d.tariffa      || '',
+      quota:           d.quota        || '',
+      totale:          d.totale       || '',
+      costo_annuo:     Math.round(costoAnnuoAttuale * 100) / 100,
+      miglior_offerta: bestForn ? (bestForn.nome + (bestForn.offerta ? ' — ' + bestForn.offerta : '')) : '',
+      risparmio:       risparmio !== null ? Math.round(risparmio * 100) / 100 : ''
+    };
+    fetch('https://script.google.com/macros/s/AKfycbyQFEd82NjaiiJ_m8HDvoi7l6n1uM081pbXmdDYDxt7TvnlX7Pmlz4Tq_0DKjeGFld7eg/exec', {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(err => console.warn('Sheet:', err));
+  } catch(err) { console.warn('inviaASheet:', err); }
+}
+
+function nuovaAnalisi() {
+  S.tipo=null; S.bolletta=null;
+  S.freq='mensile'; S.consann='reale'; S.oftar='fissa'; S.ofboll='Luce'; S.ofutenza='D'; S.dati={};
+  document.querySelectorAll('.tipo-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('.boll-card').forEach(c=>c.classList.remove('selected-luce','selected-gas'));
+  ['b-nome','b-comune','b-dal','b-al','b-consumi','b-totale','b-tariffa','b-quota','b-ann',
+   'of-nome','of-offerta','of-tar','of-quota'].forEach(id=>document.getElementById(id).value='');
+  goStep(1);
+}
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function fmt(n, d=2) {
+  if (n==null||isNaN(n)) return '—';
+  return Number(n).toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+function fmtE(n) { return n==null||isNaN(n)?'—':'€\u00a0'+fmt(n); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function dl(href, name) { const a=document.createElement('a'); a.href=href; a.download=name; a.click(); }
+function feedback(msg, color='var(--green)') {
+  const el=document.getElementById('import-feedback');
+  if(!el) return;
+  el.style.color=color; el.textContent=msg;
+  setTimeout(()=>el.textContent='', 4000);
+}
+
+// ══════════════════════════════════════════════════════
+// INIT — carica fornitori (localStorage o default embedded)
+// ══════════════════════════════════════════════════════
+caricaLS();
+
+// Aggiorna tutti gli elementi dipendenti dai fornitori solo dopo che il DOM è pronto
+// Aggiorna contatore con più metodi per compatibilità massima
+function aggiornaContatore() {
+  const _lbl = document.getElementById('forn-count-label');
+  if (_lbl) _lbl.textContent = `Offerte in lista (${S.fornitori.length})`;
+  const bannerEl = document.querySelector('.hl-box.ok span strong');
+  if (bannerEl && S.fornitori.length > 0) {
+    bannerEl.textContent = `${S.fornitori.length} offerte di mercato`;
+  }
+}
+// Prova subito, poi di nuovo quando il DOM è pronto
+aggiornaContatore();
+document.addEventListener('DOMContentLoaded', aggiornaContatore);
+window.addEventListener('load', aggiornaContatore);
+setTimeout(aggiornaContatore, 500);
+</script>
+</body>
+</html>
