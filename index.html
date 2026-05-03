@@ -1194,6 +1194,9 @@ function elabora() {
   const bestRisp = alternative.length ? costoAnnuoAttuale - alternative[0].costoAnn : null;
   renderGiudizio(d, consumiAnnui, tariffaMedia, costoAnnuoAttuale, bestRisp, alternative.length>0, alternative, unit);
 
+  // Invia dati al Google Form
+  inviaASheet(d, consumiAnnui, costoAnnuoAttuale, alternative);
+
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('step4').classList.add('active');
   updateProgress(4);
