@@ -1289,55 +1289,37 @@ function inviaASheet(d, consumiAnnui, costoAnnuoAttuale, alternative) {
 
     const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfF27hghPuWCeWv3DTCZf3TM7sbQKA_vuEn0K5r-jN-W6KsxA/formResponse';
 
-    // Mappa valori
     const utenzaMap = {'domestica':'Domestica','condominio':'Condominiale','azienda':'Azienda','altri':'Altri usi'};
     const freqMap = {'mensile':'Mensile','bimensile':'Bimensile'};
     const stimaMap = {'reale':'Dato reale','stima':'Stimato'};
 
-    const params = new URLSearchParams();
-    params.append('entry.504421860',  utenzaMap[S.tipo] || S.tipo || '');
-    params.append('entry.1454631437', S.bolletta || '');
-    params.append('entry.1431718037',          d.nome || '');
-    params.append('entry.693818251',        d.comune || '');
-    params.append('entry.450418576',           d.dal || '');
-    params.append('entry.886081512',            d.al || '');
-    params.append('entry.1934108200',          freqMap[d.freq] || d.freq || '');
-    params.append('entry.1235304336',       String(d.consumi || ''));
-    params.append('entry.893429079',        String(d.totale || ''));
-    params.append('entry.1638675551',       String(d.tariffa || ''));
-    params.append('entry.1300212809',         String(d.quota || ''));
-    params.append('entry.1367333172',   String(consumiAnnui || ''));
-    params.append('entry.2003961600',         stimaMap[d.consannType] || d.consannType || '');
+    const body = new URLSearchParams({
+      'entry.504421860':  utenzaMap[S.tipo] || S.tipo || '',
+      'entry.1454631437': S.bolletta || '',
+      'entry.1431718037': d.nome || '',
+      'entry.693818251':  d.comune || '',
+      'entry.450418576':  d.dal || '',
+      'entry.886081512':  d.al || '',
+      'entry.1934108200': freqMap[d.freq] || d.freq || '',
+      'entry.1235304336': String(d.consumi || ''),
+      'entry.893429079':  String(d.totale || ''),
+      'entry.1638675551': String(d.tariffa || ''),
+      'entry.1300212809': String(d.quota || ''),
+      'entry.1367333172': String(consumiAnnui || ''),
+      'entry.2003961600': stimaMap[d.consannType] || d.consannType || ''
+    });
 
-    // Invia tramite iframe — bypass CORS nativo di Google Forms
-    const iframe = document.createElement('iframe');
-    iframe.name = 'gf_' + Date.now();
-    iframe.style.cssText = 'display:none;width:0;height:0;border:0;position:absolute;left:-9999px';
-    document.body.appendChild(iframe);
+    fetch(FORM_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    }).then(() => {
+      console.log('BollettaChiara: dati inviati al form');
+    }).catch(err => {
+      console.warn('inviaASheet fetch errore:', err);
+    });
 
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = FORM_URL;
-    form.target = iframe.name;
-    form.style.display = 'none';
-
-    for (const [k, v] of params.entries()) {
-      const inp = document.createElement('input');
-      inp.type = 'hidden';
-      inp.name = k;
-      inp.value = v;
-      form.appendChild(inp);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    setTimeout(() => {
-      try { document.body.removeChild(form); } catch(e) {}
-      try { document.body.removeChild(iframe); } catch(e) {}
-    }, 5000);
-
-    console.log('BollettaChiara: dati inviati al form');
   } catch(err) {
     console.warn('inviaASheet errore:', err);
   }
