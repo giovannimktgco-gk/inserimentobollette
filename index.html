@@ -1285,33 +1285,37 @@ function renderGiudizio(d, consumiAnnui, tariffaMedia, costoAnnuoAttuale, bestRi
 function inviaASheet(d, consumiAnnui, costoAnnuoAttuale, alternative) {
   try {
     const bestForn = alternative.length ? alternative[0] : null;
+    const risparmio = bestForn ? Math.round((costoAnnuoAttuale - bestForn.costoAnn) * 100) / 100 : '';
     const utenzaMap = {'domestica':'Domestica','condominio':'Condominiale','azienda':'Azienda','altri':'Altri usi'};
     const freqMap = {'mensile':'Mensile','bimensile':'Bimensile'};
     const stimaMap = {'reale':'Dato reale','stima':'Stimato'};
 
-    const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfF27hghPuWCeWv3DTCZf3TM7sbQKA_vuEn0K5r-jN-W6KsxA/formResponse';
-
     const params = new URLSearchParams({
-      'entry.504421860':  utenzaMap[S.tipo] || '',
-      'entry.1454631437': S.bolletta || '',
-      'entry.1431718037': d.nome || '',
-      'entry.693818251':  d.comune || '',
-      'entry.450418576':  d.dal || '',
-      'entry.886081512':  d.al || '',
-      'entry.1934108200': freqMap[d.freq] || '',
-      'entry.1235304336': String(d.consumi || ''),
-      'entry.893429079':  String(d.totale || ''),
-      'entry.1638675551': String(d.tariffa || ''),
-      'entry.1300212809': String(d.quota || ''),
-      'entry.1367333172': String(consumiAnnui || ''),
-      'entry.2003961600': stimaMap[d.consannType] || ''
+      tipo:          utenzaMap[S.tipo] || S.tipo || '',
+      bolletta:      S.bolletta || '',
+      nome:          d.nome || '',
+      comune:        d.comune || '',
+      dal:           d.dal || '',
+      al:            d.al || '',
+      freq:          freqMap[d.freq] || d.freq || '',
+      consumi:       String(d.consumi || ''),
+      totale:        String(d.totale || ''),
+      tariffa:       String(d.tariffa || ''),
+      quota:         String(d.quota || ''),
+      consumi_ann:   String(consumiAnnui || ''),
+      stima:         stimaMap[d.consannType] || d.consannType || '',
+      costo_annuo:   String(Math.round(costoAnnuoAttuale * 100) / 100),
+      miglior_offerta: bestForn ? (bestForn.nome + (bestForn.offerta ? ' - ' + bestForn.offerta : '')) : '',
+      risparmio:     String(risparmio)
     });
 
-    // Metodo pixel — bypass CSP e CORS
-    const img = new Image();
-    img.src = FORM_URL + '?' + params.toString() + '&submit=Submit';
-    img.onload = () => console.log('BollettaChiara: dati inviati');
-    img.onerror = () => console.log('BollettaChiara: dati inviati (risposta normale)');
+    fetch('https://script.google.com/macros/s/AKfycbwVFVUTysQihfF9r7OmcKMeyywiCf3KbGTiaGIMTaKd6i60Q7fQXrms0jiK0GPmzipp/exec', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: params.toString()
+    }).then(() => console.log('BollettaChiara: dati inviati'))
+      .catch(err => console.warn('inviaASheet errore:', err));
 
   } catch(err) {
     console.warn('inviaASheet errore:', err);
